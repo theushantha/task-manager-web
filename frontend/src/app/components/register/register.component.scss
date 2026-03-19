@@ -3,19 +3,24 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(64, 157, 255, 0.25), transparent 40%),
+    radial-gradient(circle at 90% 15%, rgba(40, 191, 172, 0.18), transparent 45%),
+    linear-gradient(180deg, #eef6ff 0%, #e4f0ff 100%);
+  padding: 1.25rem;
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 .register-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 20px;
+  border: 1px solid #d8e8fb;
+  box-shadow: 0 22px 42px rgba(33, 95, 185, 0.14);
+  padding: 1.8rem;
   width: 100%;
-  max-width: 480px;
-  animation: slideUp 0.3s ease-out;
+  max-width: 500px;
+  animation: slideUp 0.35s ease-out;
+  backdrop-filter: blur(8px);
 }
 
 @keyframes slideUp {
@@ -31,18 +36,18 @@
 
 .register-header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 1.2rem;
 
   h1 {
-    font-size: 28px;
+    font-size: 1.9rem;
     font-weight: 700;
-    color: #333;
-    margin: 0 0 8px 0;
+    color: #123764;
+    margin: 0 0 0.4rem;
   }
 
   p {
-    font-size: 14px;
-    color: #666;
+    font-size: 0.9rem;
+    color: #5d7da2;
     margin: 0;
   }
 }
@@ -50,54 +55,56 @@
 .register-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0.9rem;
 
   .form-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.42rem;
 
     &.checkbox-group {
       margin-top: 5px;
     }
 
     .form-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #2b4b70;
+      letter-spacing: 0.01em;
     }
 
     .form-control {
-      padding: 12px 14px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 0.72rem 0.82rem;
+      border: 1px solid #d9e8fb;
+      border-radius: 12px;
+      font-size: 0.92rem;
       font-family: inherit;
-      transition: all 0.3s ease;
+      color: #2a4b70;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
       &:focus {
         outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        border-color: #7eb5f8;
+        box-shadow: 0 0 0 3px rgba(99, 165, 245, 0.2);
       }
 
       &:disabled {
-        background-color: #f5f5f5;
+        background-color: #f3f7fd;
         cursor: not-allowed;
       }
 
       &.is-invalid {
-        border-color: #f44336;
+        border-color: #f0abab;
         background-color: #ffebee;
       }
     }
 
     .field-error {
-      font-size: 12px;
-      color: #f44336;
+      font-size: 0.78rem;
+      color: #b84747;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 0.25rem;
 
       span {
         display: block;
@@ -118,11 +125,11 @@
 
   .password-toggle {
     position: absolute;
-    right: 12px;
+    right: 10px;
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     opacity: 0.6;
     transition: opacity 0.2s ease;
     padding: 0;
@@ -144,12 +151,12 @@
 .password-strength {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.6rem;
 
   .strength-bar-container {
     flex: 1;
-    height: 6px;
-    background-color: #e0e0e0;
+    height: 5px;
+    background-color: #dce9fb;
     border-radius: 3px;
     overflow: hidden;
   }
@@ -181,9 +188,9 @@
   }
 
   .strength-text {
-    font-size: 12px;
+    font-size: 0.72rem;
     font-weight: 600;
-    min-width: 70px;
+    min-width: 66px;
 
     &.strength-weak {
       color: #f44336;
@@ -208,9 +215,9 @@
 }
 
 .password-hint {
-  font-size: 12px;
-  color: #999;
-  margin: 4px 0 0 0;
+  font-size: 0.72rem;
+  color: #8199b6;
+  margin: 0.18rem 0 0;
   font-style: italic;
 }
 
@@ -235,49 +242,48 @@
   }
 
   .checkbox-text {
-    font-size: 13px;
-    color: #666;
+    font-size: 0.8rem;
+    color: #6787ac;
     line-height: 1.4;
 
     .link {
-      color: #667eea;
+      color: #2f80ed;
       text-decoration: none;
       font-weight: 500;
       transition: color 0.2s ease;
 
       &:hover {
-        color: #764ba2;
-        text-decoration: underline;
+        color: #1c67cc;
       }
     }
   }
 }
 
 .alert {
-  padding: 12px 14px;
-  border-radius: 8px;
+  padding: 0.78rem 0.82rem;
+  border-radius: 12px;
   display: flex;
-  gap: 10px;
+  gap: 0.5rem;
   align-items: flex-start;
-  font-size: 14px;
+  font-size: 0.85rem;
   animation: slideDown 0.3s ease-out;
 
   .alert-icon {
-    font-size: 18px;
+    font-size: 1rem;
     flex-shrink: 0;
-    margin-top: 2px;
+    margin-top: 0.02rem;
   }
 
   &.alert-error {
-    background-color: #ffebee;
-    color: #c62828;
-    border: 1px solid #f44336;
+    background-color: #ffefef;
+    color: #a53c3c;
+    border: 1px solid #ffcaca;
   }
 
   &.alert-success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #4caf50;
+    background-color: #e9f9f1;
+    color: #1f7d4f;
+    border: 1px solid #b9ebcd;
   }
 }
 
@@ -295,6 +301,21 @@
 .btn-block {
   width: 100%;
   position: relative;
+  margin-top: 0.2rem;
+  border-radius: 999px;
+  padding: 0.74rem 1.1rem;
+  background: linear-gradient(135deg, #3d94ff, #2f80ed);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 18px rgba(47, 128, 237, 0.23);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #2e88f8, #1c67cc);
+  }
 
   .spinner {
     display: inline-flex;
@@ -323,24 +344,23 @@
 
 .register-footer {
   text-align: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+  margin-top: 1rem;
+  padding-top: 0.95rem;
+  border-top: 1px solid #e2eefc;
 
   p {
-    font-size: 14px;
-    color: #666;
+    font-size: 0.86rem;
+    color: #6787ac;
     margin: 0;
 
     .link {
-      color: #667eea;
+      color: #2f80ed;
       text-decoration: none;
       font-weight: 600;
       transition: color 0.2s ease;
 
       &:hover {
-        color: #764ba2;
-        text-decoration: underline;
+        color: #1c67cc;
       }
     }
   }
@@ -349,16 +369,16 @@
 // Responsive Design
 @media (max-width: 480px) {
   .register-card {
-    padding: 30px 20px;
+    padding: 1.2rem 1rem;
   }
 
   .register-header {
     h1 {
-      font-size: 24px;
+      font-size: 1.55rem;
     }
 
     p {
-      font-size: 13px;
+      font-size: 0.82rem;
     }
   }
 
@@ -366,7 +386,7 @@
     gap: 16px;
 
     .form-group .form-label {
-      font-size: 13px;
+      font-size: 0.8rem;
     }
 
     .form-group .form-control {

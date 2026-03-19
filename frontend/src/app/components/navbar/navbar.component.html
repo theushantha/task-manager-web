@@ -1,15 +1,16 @@
 <nav class="navbar">
   <div class="navbar-container">
     <div class="navbar-brand">
-      <h2 class="app-title">📋 Task Manager</h2>
+      <div class="logo-dot" aria-hidden="true"></div>
+      <h2 class="app-title">Task Flow</h2>
     </div>
 
     <div class="navbar-menu">
       <div class="user-menu-container">
         <button class="user-button" (click)="toggleUserMenu()">
-          <span class="user-icon">👤</span>
+          <span class="user-icon">●</span>
           <span class="user-name">{{ getCurrentUserDisplay() }}</span>
-          <span class="dropdown-arrow">▼</span>
+          <span class="dropdown-arrow">▾</span>
         </button>
 
         @if (showUserMenu) {
@@ -19,7 +20,7 @@
             </div>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-btn" (click)="logout()">
-              <span class="logout-icon">🚪</span>
+              <span class="logout-icon">↗</span>
               <span>Sign Out</span>
             </button>
           </div>

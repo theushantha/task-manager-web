@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { Task, TaskStatus, TaskPriority } from '../../models/task.model';
 import { NavbarComponent } from '../navbar/navbar.component';
-import { Subject, debounceTime } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, map } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -22,6 +22,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
   private searchTerm$ = new Subject<string>();
+  private normalizedSearchTerm = '';
+  private searchIndex = new Map<string, string>();
 
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
@@ -41,7 +43,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
-          this.tasks = tasks || [];
+          this.setTasks(tasks || []);
           this.applyFilters();
           this.cdr.markForCheck();
         }
@@ -50,12 +52,14 @@ export class TaskListComponent implements OnInit, OnDestroy {
     // Handle search with debounce
     this.searchTerm$
       .pipe(
+        map((term) => term.trim().toLowerCase()),
+        distinctUntilChanged(),
         debounceTime(300),
         takeUntil(this.destroy$)
       )
       .subscribe({
         next: (term) => {
-          this.searchTerm = term;
+          this.normalizedSearchTerm = term;
           this.applyFilters();
           this.cdr.markForCheck();
         }
@@ -79,13 +83,13 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
-          this.tasks = tasks || [];
+          this.setTasks(tasks || []);
           this.applyFilters();
           this.loading = false;
         },
         error: (error) => {
           this.error = error.message || 'Failed to load tasks';
-          this.tasks = [];
+          this.setTasks([]);
           this.filteredTasks = [];
           this.loading = false;
         }
@@ -93,35 +97,22 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    let filtered = [...this.tasks]; // Create copy to avoid mutations
+    const hasSearchTerm = this.normalizedSearchTerm.length > 0;
+    const filtered: Task[] = [];
 
-    // Apply filter
-    switch (this.selectedFilter) {
-      case 'pending':
-        filtered = filtered.filter(t => t.status === TaskStatus.PENDING);
-        break;
-      case 'inProgress':
-        filtered = filtered.filter(t => t.status === TaskStatus.IN_PROGRESS);
-        break;
-      case 'completed':
-        filtered = filtered.filter(t => t.status === TaskStatus.COMPLETED);
-        break;
-      case 'starred':
-        filtered = filtered.filter(t => t.starred === true);
-        break;
-      case 'all':
-      default:
-        // No additional filtering needed for 'all'
-        break;
-    }
+    for (const task of this.tasks) {
+      if (!this.matchesSelectedFilter(task)) {
+        continue;
+      }
 
-    // Apply search
-    if (this.searchTerm && this.searchTerm.trim()) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(t =>
-        (t.title && t.title.toLowerCase().includes(term)) ||
-        (t.description && t.description.toLowerCase().includes(term))
-      );
+      if (hasSearchTerm) {
+        const searchable = this.searchIndex.get(task.id) || '';
+        if (!searchable.includes(this.normalizedSearchTerm)) {
+          continue;
+        }
+      }
+
+      filtered.push(task);
     }
 
     this.filteredTasks = filtered;
@@ -134,6 +125,45 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   onSearchChange(): void {
     this.searchTerm$.next(this.searchTerm);
+  }
+
+  private setTasks(tasks: Task[]): void {
+    this.tasks = tasks;
+    this.rebuildSearchIndex();
+  }
+
+  private rebuildSearchIndex(): void {
+    this.searchIndex.clear();
+
+    for (const task of this.tasks) {
+      const searchable = [
+        task.title,
+        task.description,
+        task.category,
+        (task.tags || []).join(' ')
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      this.searchIndex.set(task.id, searchable);
+    }
+  }
+
+  private matchesSelectedFilter(task: Task): boolean {
+    switch (this.selectedFilter) {
+      case 'pending':
+        return task.status === TaskStatus.PENDING;
+      case 'inProgress':
+        return task.status === TaskStatus.IN_PROGRESS;
+      case 'completed':
+        return task.status === TaskStatus.COMPLETED;
+      case 'starred':
+        return task.starred === true;
+      case 'all':
+      default:
+        return true;
+    }
   }
 
   onStatusChange(task: Task, newStatus: string): void {

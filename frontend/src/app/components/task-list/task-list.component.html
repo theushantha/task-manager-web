@@ -2,8 +2,8 @@
 
 <div class="task-list-container">
   <div class="task-list-header">
-    <h1>My Tasks</h1>
-    <button class="btn btn-primary" (click)="createNewTask()">+ Create Task</button>
+    <h1>My Day</h1>
+    <button class="btn btn-primary" (click)="createNewTask()">+ Add Task</button>
   </div>
 
   <!-- Error Message -->
@@ -22,7 +22,7 @@
         class="search-input"
         placeholder="Search tasks..."
         [(ngModel)]="searchTerm"
-        (change)="onSearchChange()"
+        (input)="onSearchChange()"
       />
       <span class="search-icon">🔍</span>
     </div>
@@ -77,8 +77,8 @@
   <!-- Empty State -->
   @if (!loading && filteredTasks.length === 0) {
     <div class="empty-state">
-      <p>📋 No tasks found</p>
-      <p class="empty-state-hint">Create a new task to get started</p>
+      <p>No tasks yet</p>
+      <p class="empty-state-hint">Add your first task to start planning your day</p>
     </div>
   }
 
