@@ -51,8 +51,7 @@ export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeact
       status: [TaskStatus.PENDING, Validators.required],
       dueDate: [''],
       category: [''],
-      tags: [''],
-      starred: [false]
+      tags: ['']
     });
   }
 
