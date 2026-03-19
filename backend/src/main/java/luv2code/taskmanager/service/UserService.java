@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @Slf4j
 public class UserService {
@@ -16,7 +18,7 @@ public class UserService {
 
     public User getUserById(String userId) {
         log.info("Fetching user with id: {}", userId);
-        return userRepository.findById(userId)
+        return userRepository.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
@@ -30,7 +32,7 @@ public class UserService {
         log.info("Deleting user with id: {}", userId);
         
         User user = getUserById(userId);
-        userRepository.deleteById(userId);
+        userRepository.deleteById(Objects.requireNonNull(userId));
         log.info("User {} deleted successfully", user.getUsername());
     }
 

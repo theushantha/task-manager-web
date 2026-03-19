@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +44,7 @@ public class TaskService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        Task savedTask = taskRepository.save(task);
+        Task savedTask = taskRepository.save(Objects.requireNonNull(task));
         log.info("Task created with id: {}", savedTask.getId());
         
         return convertToDTO(savedTask);
@@ -233,7 +234,7 @@ public class TaskService {
     public void deleteTask(String userId, String taskId) {
         log.info("Deleting task: {} for user: {}", taskId, userId);
         findTaskByIdAndUserId(taskId, userId);
-        taskRepository.deleteById(taskId);
+        taskRepository.deleteById(Objects.requireNonNull(taskId));
         log.info("Task deleted: {}", taskId);
     }
 
@@ -488,7 +489,7 @@ public class TaskService {
      * Helper method to find task by ID and verify it belongs to user
      */
     private Task findTaskByIdAndUserId(String taskId, String userId) {
-        Task task = taskRepository.findById(taskId)
+        Task task = taskRepository.findById(Objects.requireNonNull(taskId))
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + taskId));
 
         if (!task.getUserId().equals(userId)) {

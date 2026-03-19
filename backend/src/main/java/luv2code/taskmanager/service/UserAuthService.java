@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +30,7 @@ public class UserAuthService {
 
     public User getUserById(String userId) {
         log.debug("Fetching user with id: {}", userId);
-        return userRepository.findById(userId)
+        return userRepository.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
@@ -134,7 +135,7 @@ public class UserAuthService {
     public void deleteUser(String userId) {
         log.warn("Deleting user: {}", userId);
         User user = getUserById(userId);
-        userRepository.deleteById(userId);
+        userRepository.deleteById(Objects.requireNonNull(userId));
         log.warn("User {} deleted successfully", user.getUsername());
     }
 
