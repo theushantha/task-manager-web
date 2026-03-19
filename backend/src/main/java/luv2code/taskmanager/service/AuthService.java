@@ -48,7 +48,7 @@ public class AuthService {
         // Record last login
         userAuthService.recordLastLogin(user.getUsername());
 
-        String token = jwtTokenProvider.generateToken(user.getUsername());
+        String token = jwtTokenProvider.generateTokenWithUserId(user.getUsername(), user.getId());
         log.info("User {} logged in successfully", user.getUsername());
 
         return new AuthResponse(token, user.getUsername(), user.getEmail(), user.getId());
@@ -85,7 +85,7 @@ public class AuthService {
         User savedUser = userRepository.save(user);
         log.info("New user registered: {}", savedUser.getUsername());
 
-        String token = jwtTokenProvider.generateToken(savedUser.getUsername());
+        String token = jwtTokenProvider.generateTokenWithUserId(savedUser.getUsername(), savedUser.getId());
 
         return new AuthResponse(token, savedUser.getUsername(), savedUser.getEmail(), savedUser.getId());
     }
