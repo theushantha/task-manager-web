@@ -1,6 +1,14 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
@@ -30,6 +38,8 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
   error = '';
   success = false;
   taskId = '';
+  minDueDate = '';
+  private originalDueDate = '';
 
   // Enums for dropdowns
   TaskPriority = TaskPriority;
@@ -38,6 +48,7 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
   statusOptions = Object.values(TaskStatus);
 
   ngOnInit(): void {
+    this.minDueDate = this.getTodayDateString();
     this.initializeForm();
     this.loadTask();
   }
@@ -53,7 +64,7 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
       description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
       priority: [TaskPriority.MEDIUM, Validators.required],
       status: [TaskStatus.PENDING, Validators.required],
-      dueDate: [''],
+      dueDate: ['', [this.dueDateNotPastValidator()]],
       category: [''],
       tags: [''],
       starred: [false]
@@ -86,6 +97,7 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
   populateForm(task: Task): void {
     const tagsString = task.tags ? task.tags.join(', ') : '';
     const dueDateValue = task.dueDate ? task.dueDate.split('T')[0] : '';
+    this.originalDueDate = dueDateValue;
 
     this.taskForm.patchValue({
       title: task.title,
@@ -97,6 +109,36 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
       tags: tagsString,
       starred: task.starred || false
     });
+
+    this.f['dueDate'].updateValueAndValidity();
+  }
+
+  private dueDateNotPastValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) {
+        return null;
+      }
+
+      // Allow legacy past due date to remain unchanged during edit.
+      if (this.originalDueDate && value === this.originalDueDate) {
+        return null;
+      }
+
+      const selectedDate = new Date(`${value}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return selectedDate < today ? { pastDate: true } : null;
+    };
+  }
+
+  private getTodayDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   get f() {

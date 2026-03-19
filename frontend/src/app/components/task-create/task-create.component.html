@@ -117,8 +117,15 @@
         id="dueDate"
         formControlName="dueDate"
         class="form-control"
+        [class.is-invalid]="submitted && f['dueDate'].errors"
+        [attr.min]="minDueDate"
         [disabled]="loading"
       />
+      @if (submitted && f['dueDate'].errors?.['pastDate']) {
+        <div class="field-error">
+          <span>Due date cannot be in the past</span>
+        </div>
+      }
     </div>
 
     <!-- Category Field -->

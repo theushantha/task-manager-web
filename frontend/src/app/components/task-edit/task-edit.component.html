@@ -24,10 +24,6 @@
     }
 
     <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-      <div class="task-id-badge">
-        Editing Task ID: <strong>{{ taskId }}</strong>
-      </div>
-
       <!-- Title Field -->
       <div class="form-group">
         <label for="title" class="form-label">Task Title <span class="required">*</span></label>
@@ -127,8 +123,15 @@
           id="dueDate"
           formControlName="dueDate"
           class="form-control"
+          [class.is-invalid]="submitted && f['dueDate'].errors"
+          [attr.min]="minDueDate"
           [disabled]="loading"
         />
+        @if (submitted && f['dueDate'].errors?.['pastDate']) {
+          <div class="field-error">
+            <span>Due date cannot be in the past</span>
+          </div>
+        }
       </div>
 
       <!-- Category Field -->

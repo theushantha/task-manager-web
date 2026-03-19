@@ -12,6 +12,7 @@ import java.util.List;
 public class TaskCreateRequest {
     private String title;
     private String description;
+    private String status;
     private String priority;
     private LocalDateTime dueDate;
     private String category;

@@ -60,6 +60,14 @@ public class TaskService {
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
+        if (request.getStatus() != null) {
+            task.setStatus(request.getStatus());
+            if ("COMPLETED".equals(request.getStatus())) {
+                task.setCompletedAt(LocalDateTime.now());
+            } else {
+                task.setCompletedAt(null);
+            }
+        }
         task.setPriority(request.getPriority() != null ? request.getPriority() : task.getPriority());
         task.setDueDate(request.getDueDate());
         task.setCategory(request.getCategory());
@@ -224,7 +232,7 @@ public class TaskService {
     @Transactional
     public void deleteTask(String userId, String taskId) {
         log.info("Deleting task: {} for user: {}", taskId, userId);
-        Task task = findTaskByIdAndUserId(taskId, userId);
+        findTaskByIdAndUserId(taskId, userId);
         taskRepository.deleteById(taskId);
         log.info("Task deleted: {}", taskId);
     }

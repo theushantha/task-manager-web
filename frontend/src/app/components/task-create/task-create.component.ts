@@ -1,6 +1,14 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { TaskPriority, TaskStatus } from '../../models/task.model';
@@ -27,6 +35,7 @@ export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeact
   loading = false;
   error = '';
   success = false;
+  minDueDate = '';
 
   // Enums for dropdowns
   TaskPriority = TaskPriority;
@@ -35,6 +44,7 @@ export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeact
   statusOptions = Object.values(TaskStatus);
 
   ngOnInit(): void {
+    this.minDueDate = this.getTodayDateString();
     this.initializeForm();
   }
 
@@ -49,10 +59,33 @@ export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeact
       description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
       priority: [TaskPriority.MEDIUM, Validators.required],
       status: [TaskStatus.PENDING, Validators.required],
-      dueDate: [''],
+      dueDate: ['', [this.dueDateNotPastValidator()]],
       category: [''],
       tags: ['']
     });
+  }
+
+  private dueDateNotPastValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) {
+        return null;
+      }
+
+      const selectedDate = new Date(`${value}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return selectedDate < today ? { pastDate: true } : null;
+    };
+  }
+
+  private getTodayDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   get f() {

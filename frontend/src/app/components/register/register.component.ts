@@ -55,14 +55,11 @@ export class RegisterComponent implements OnInit {
       const password = formGroup.get('password')?.value;
       const confirmPassword = formGroup.get('confirmPassword')?.value;
 
-      if (password && confirmPassword && password !== confirmPassword) {
-        formGroup.get('confirmPassword')?.setErrors({ passwordMismatch: true });
-        return { passwordMismatch: true };
-      } else if (password && confirmPassword && password === confirmPassword) {
-        formGroup.get('confirmPassword')?.setErrors(null);
+      if (!password || !confirmPassword) {
+        return null;
       }
 
-      return null;
+      return password !== confirmPassword ? { passwordMismatch: true } : null;
     };
   }
 

@@ -141,7 +141,7 @@
             id="confirmPassword"
             formControlName="confirmPassword"
             class="form-control"
-            [class.is-invalid]="submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])"
+            [class.is-invalid]="(submitted || f['confirmPassword'].touched || f['confirmPassword'].dirty) && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])"
             placeholder="Confirm your password"
           />
           <button
@@ -166,7 +166,7 @@
             }
           </button>
         </div>
-        @if (submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])) {
+        @if ((submitted || f['confirmPassword'].touched || f['confirmPassword'].dirty) && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])) {
           <div class="field-error">
             @if (f['confirmPassword'].errors?.['required']) {
               <span>Confirm password is required</span>

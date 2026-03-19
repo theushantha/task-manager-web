@@ -91,24 +91,6 @@
   gap: 1.1rem;
 }
 
-.task-id-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: #f3f8ff;
-  color: #4a688d;
-  border: 1px solid #d5e5fa;
-  border-radius: 999px;
-  padding: 0.35rem 0.72rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-
-  strong {
-    color: #2e5d94;
-    letter-spacing: 0.01em;
-  }
-}
-
 .form-group {
   display: flex;
   flex-direction: column;

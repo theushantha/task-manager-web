@@ -197,25 +197,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
     }
   }
 
-  onStatusChange(task: Task, newStatus: string): void {
-    this.taskService.updateTaskStatus(task.id, newStatus as TaskStatus)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.cdr.markForCheck();
-        },
-        error: (error) => {
-          this.error = error.message || 'Failed to update task status';
-          this.cdr.markForCheck();
-        }
-      });
-  }
-
-  handleStatusChange(event: Event, task: Task): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.onStatusChange(task, selectElement.value);
-  }
-
   toggleStarred(event: Event, task: Task): void {
     event.stopPropagation();
     this.taskService.toggleStarred(task.id)
