@@ -4,7 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { TaskPriority, TaskStatus } from '../../models/task.model';
-import { Subject } from 'rxjs';
+import { CanComponentDeactivate } from '../../guards/unsaved-changes.guard';
+import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
@@ -14,7 +15,7 @@ import { takeUntil } from 'rxjs/operators';
   templateUrl: './task-create.component.html',
   styleUrls: ['./task-create.component.scss']
 })
-export class TaskCreateComponent implements OnInit, OnDestroy {
+export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   private fb = inject(FormBuilder);
   private taskService = inject(TaskService);
   private router = inject(Router);
@@ -99,5 +100,32 @@ export class TaskCreateComponent implements OnInit, OnDestroy {
 
   cancel(): void {
     this.router.navigate(['/tasks']);
+  }
+
+  /**
+   * Guard method to prevent navigation with unsaved changes
+   */
+  canDeactivate(): Observable<boolean> | boolean {
+    // If form has no changes and not loading, allow navigation
+    if (!this.taskForm.dirty && !this.loading) {
+      return true;
+    }
+
+    // If form has been submitted successfully, allow navigation
+    if (this.success) {
+      return true;
+    }
+
+    // If form is loading, prevent navigation
+    if (this.loading) {
+      return false;
+    }
+
+    // Form has unsaved changes, ask for confirmation
+    if (this.taskForm.dirty) {
+      return confirm('You have unsaved changes. Do you want to leave without saving?');
+    }
+
+    return true;
   }
 }

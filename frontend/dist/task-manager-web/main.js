@@ -12,14 +12,18 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   AppRoutingModule: () => (/* binding */ AppRoutingModule),
 /* harmony export */   routes: () => (/* binding */ routes)
 /* harmony export */ });
-/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @angular/router */ 5072);
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! @angular/router */ 5072);
 /* harmony import */ var _components_login_login_component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./components/login/login.component */ 205);
 /* harmony import */ var _components_register_register_component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./components/register/register.component */ 3997);
 /* harmony import */ var _components_task_list_task_list_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components/task-list/task-list.component */ 8109);
 /* harmony import */ var _components_task_create_task_create_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components/task-create/task-create.component */ 5041);
 /* harmony import */ var _components_task_edit_task_edit_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./components/task-edit/task-edit.component */ 6861);
 /* harmony import */ var _guards_auth_guard__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./guards/auth.guard */ 1620);
-/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/core */ 7580);
+/* harmony import */ var _guards_no_auth_guard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./guards/no-auth.guard */ 1934);
+/* harmony import */ var _guards_unsaved_changes_guard__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./guards/unsaved-changes.guard */ 100);
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @angular/core */ 7580);
+
+
 
 
 
@@ -31,6 +35,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const routes = [{
   path: 'auth',
+  canActivate: [_guards_no_auth_guard__WEBPACK_IMPORTED_MODULE_6__.NoAuthGuard],
   children: [{
     path: 'login',
     component: _components_login_login_component__WEBPACK_IMPORTED_MODULE_0__.LoginComponent
@@ -50,15 +55,20 @@ const routes = [{
     component: _components_task_list_task_list_component__WEBPACK_IMPORTED_MODULE_2__.TaskListComponent
   }, {
     path: 'create',
-    component: _components_task_create_task_create_component__WEBPACK_IMPORTED_MODULE_3__.TaskCreateComponent
+    component: _components_task_create_task_create_component__WEBPACK_IMPORTED_MODULE_3__.TaskCreateComponent,
+    canDeactivate: [_guards_unsaved_changes_guard__WEBPACK_IMPORTED_MODULE_7__.UnsavedChangesGuard]
   }, {
     path: ':id/edit',
-    component: _components_task_edit_task_edit_component__WEBPACK_IMPORTED_MODULE_4__.TaskEditComponent
+    component: _components_task_edit_task_edit_component__WEBPACK_IMPORTED_MODULE_4__.TaskEditComponent,
+    canDeactivate: [_guards_unsaved_changes_guard__WEBPACK_IMPORTED_MODULE_7__.UnsavedChangesGuard]
   }]
 }, {
   path: '',
   redirectTo: 'tasks',
   pathMatch: 'full'
+}, {
+  path: '**',
+  redirectTo: 'tasks'
 }];
 class AppRoutingModule {
   static {
@@ -67,20 +77,20 @@ class AppRoutingModule {
     };
   }
   static {
-    this.ɵmod = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefineNgModule"]({
+    this.ɵmod = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵdefineNgModule"]({
       type: AppRoutingModule
     });
   }
   static {
-    this.ɵinj = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵdefineInjector"]({
-      imports: [_angular_router__WEBPACK_IMPORTED_MODULE_7__.RouterModule.forRoot(routes), _angular_router__WEBPACK_IMPORTED_MODULE_7__.RouterModule]
+    this.ɵinj = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵdefineInjector"]({
+      imports: [_angular_router__WEBPACK_IMPORTED_MODULE_9__.RouterModule.forRoot(routes), _angular_router__WEBPACK_IMPORTED_MODULE_9__.RouterModule]
     });
   }
 }
 (function () {
-  (typeof ngJitMode === "undefined" || ngJitMode) && _angular_core__WEBPACK_IMPORTED_MODULE_6__["ɵɵsetNgModuleScope"](AppRoutingModule, {
-    imports: [_angular_router__WEBPACK_IMPORTED_MODULE_7__.RouterModule],
-    exports: [_angular_router__WEBPACK_IMPORTED_MODULE_7__.RouterModule]
+  (typeof ngJitMode === "undefined" || ngJitMode) && _angular_core__WEBPACK_IMPORTED_MODULE_8__["ɵɵsetNgModuleScope"](AppRoutingModule, {
+    imports: [_angular_router__WEBPACK_IMPORTED_MODULE_9__.RouterModule],
+    exports: [_angular_router__WEBPACK_IMPORTED_MODULE_9__.RouterModule]
   });
 })();
 
@@ -1208,6 +1218,28 @@ class TaskCreateComponent {
   cancel() {
     this.router.navigate(['/tasks']);
   }
+  /**
+   * Guard method to prevent navigation with unsaved changes
+   */
+  canDeactivate() {
+    // If form has no changes and not loading, allow navigation
+    if (!this.taskForm.dirty && !this.loading) {
+      return true;
+    }
+    // If form has been submitted successfully, allow navigation
+    if (this.success) {
+      return true;
+    }
+    // If form is loading, prevent navigation
+    if (this.loading) {
+      return false;
+    }
+    // Form has unsaved changes, ask for confirmation
+    if (this.taskForm.dirty) {
+      return confirm('You have unsaved changes. Do you want to leave without saving?');
+    }
+    return true;
+  }
   static {
     this.ɵfac = function TaskCreateComponent_Factory(t) {
       return new (t || TaskCreateComponent)();
@@ -1747,6 +1779,28 @@ class TaskEditComponent {
   }
   cancel() {
     this.router.navigate(['/tasks']);
+  }
+  /**
+   * Guard method to prevent navigation with unsaved changes
+   */
+  canDeactivate() {
+    // If form has no changes and not loading, allow navigation
+    if (!this.taskForm.dirty && !this.loading) {
+      return true;
+    }
+    // If form has been submitted successfully, allow navigation
+    if (this.success) {
+      return true;
+    }
+    // If form is loading, prevent navigation
+    if (this.loading) {
+      return false;
+    }
+    // Form has unsaved changes, ask for confirmation
+    if (this.taskForm.dirty) {
+      return confirm('You have unsaved changes. Do you want to leave without saving?');
+    }
+    return true;
   }
   static {
     this.ɵfac = function TaskEditComponent_Factory(t) {
@@ -2297,21 +2351,48 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ 7580);
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/router */ 5072);
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs/operators */ 271);
+/* harmony import */ var rxjs_operators__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! rxjs/operators */ 1318);
 /* harmony import */ var _services_auth_service__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/auth.service */ 4796);
 
 
 
 
+
+/**
+ * Enhanced Auth Guard - Protects authenticated routes
+ * Validates token and checks authentication status
+ * Redirects unauthenticated users to login
+ */
 class AuthGuard {
   constructor() {
     this.authService = (0,_angular_core__WEBPACK_IMPORTED_MODULE_1__.inject)(_services_auth_service__WEBPACK_IMPORTED_MODULE_0__.AuthService);
     this.router = (0,_angular_core__WEBPACK_IMPORTED_MODULE_1__.inject)(_angular_router__WEBPACK_IMPORTED_MODULE_2__.Router);
   }
   canActivate(route, state) {
+    // Check if user is authenticated
     if (this.authService.isAuthenticated()) {
-      return true;
+      // Validate token with backend (optional but recommended)
+      return this.authService.validateToken().pipe((0,rxjs_operators__WEBPACK_IMPORTED_MODULE_3__.map)(isValid => {
+        if (isValid) {
+          return true;
+        }
+        // Token is invalid, redirect to login
+        this.authService.logout();
+        this.router.navigate(['/auth/login'], {
+          queryParams: {
+            returnUrl: state.url
+          }
+        });
+        return false;
+      }), (0,rxjs_operators__WEBPACK_IMPORTED_MODULE_4__.catchError)(() => {
+        // Validation request failed, logout and redirect
+        this.authService.logout();
+        this.router.navigate(['/auth/login']);
+        return [false];
+      }));
     }
-    // Not logged in, redirect to login page
+    // Not logged in, redirect to login page with return URL
     this.router.navigate(['/auth/login'], {
       queryParams: {
         returnUrl: state.url
@@ -2328,6 +2409,94 @@ class AuthGuard {
     this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjectable"]({
       token: AuthGuard,
       factory: AuthGuard.ɵfac,
+      providedIn: 'root'
+    });
+  }
+}
+
+/***/ }),
+
+/***/ 1934:
+/*!*****************************************!*\
+  !*** ./src/app/guards/no-auth.guard.ts ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NoAuthGuard: () => (/* binding */ NoAuthGuard)
+/* harmony export */ });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ 7580);
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/router */ 5072);
+/* harmony import */ var _services_auth_service__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../services/auth.service */ 4796);
+
+
+
+
+/**
+ * No Auth Guard - Prevents authenticated users from accessing auth pages
+ * Redirects authenticated users to dashboard/tasks
+ * Allows unauthenticated users to access login and signup pages
+ */
+class NoAuthGuard {
+  constructor() {
+    this.authService = (0,_angular_core__WEBPACK_IMPORTED_MODULE_1__.inject)(_services_auth_service__WEBPACK_IMPORTED_MODULE_0__.AuthService);
+    this.router = (0,_angular_core__WEBPACK_IMPORTED_MODULE_1__.inject)(_angular_router__WEBPACK_IMPORTED_MODULE_2__.Router);
+  }
+  canActivate() {
+    // If already authenticated, redirect to tasks/dashboard
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate(['/tasks']);
+      return false;
+    }
+    // Allow unauthenticated users to access auth pages
+    return true;
+  }
+  static {
+    this.ɵfac = function NoAuthGuard_Factory(t) {
+      return new (t || NoAuthGuard)();
+    };
+  }
+  static {
+    this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjectable"]({
+      token: NoAuthGuard,
+      factory: NoAuthGuard.ɵfac,
+      providedIn: 'root'
+    });
+  }
+}
+
+/***/ }),
+
+/***/ 100:
+/*!*************************************************!*\
+  !*** ./src/app/guards/unsaved-changes.guard.ts ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   UnsavedChangesGuard: () => (/* binding */ UnsavedChangesGuard)
+/* harmony export */ });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ 7580);
+
+/**
+ * Unsaved Changes Guard - Prevents accidental navigation away from forms
+ * Shows confirmation dialog when user tries to navigate without saving changes
+ */
+class UnsavedChangesGuard {
+  canDeactivate(component) {
+    return component.canDeactivate ? component.canDeactivate() : true;
+  }
+  static {
+    this.ɵfac = function UnsavedChangesGuard_Factory(t) {
+      return new (t || UnsavedChangesGuard)();
+    };
+  }
+  static {
+    this.ɵprov = /*@__PURE__*/_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineInjectable"]({
+      token: UnsavedChangesGuard,
+      factory: UnsavedChangesGuard.ɵfac,
       providedIn: 'root'
     });
   }

@@ -6,10 +6,13 @@ import { TaskListComponent } from './components/task-list/task-list.component';
 import { TaskCreateComponent } from './components/task-create/task-create.component';
 import { TaskEditComponent } from './components/task-edit/task-edit.component';
 import { AuthGuard } from './guards/auth.guard';
+import { NoAuthGuard } from './guards/no-auth.guard';
+import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
     path: 'auth',
+    canActivate: [NoAuthGuard],
     children: [
       { path: 'login', component: LoginComponent },
       { path: 'signup', component: RegisterComponent },
@@ -21,14 +24,26 @@ export const routes: Routes = [
     canActivate: [AuthGuard],
     children: [
       { path: '', component: TaskListComponent },
-      { path: 'create', component: TaskCreateComponent },
-      { path: ':id/edit', component: TaskEditComponent }
+      {
+        path: 'create',
+        component: TaskCreateComponent,
+        canDeactivate: [UnsavedChangesGuard]
+      },
+      {
+        path: ':id/edit',
+        component: TaskEditComponent,
+        canDeactivate: [UnsavedChangesGuard]
+      }
     ]
   },
   {
     path: '',
     redirectTo: 'tasks',
     pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: 'tasks'
   }
 ];
 
