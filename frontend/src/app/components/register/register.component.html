@@ -1,0 +1,212 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>Create Account</h1>
+      <p>Join Task Manager and start managing your tasks</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      <!-- Success Message -->
+      @if (success) {
+        <div class="alert alert-success">
+          <span class="alert-icon">✓</span>
+          <span>{{ success }}</span>
+        </div>
+      }
+
+      <!-- Error Message -->
+      @if (error) {
+        <div class="alert alert-error">
+          <span class="alert-icon">⚠️</span>
+          <span>{{ error }}</span>
+        </div>
+      }
+
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-control"
+          [class.is-invalid]="submitted && f['username'].errors"
+          placeholder="Choose a username"
+          [disabled]="loading"
+        />
+        @if (submitted && f['username'].errors) {
+          <div class="field-error">
+            @if (f['username'].errors['required']) {
+              <span>Username is required</span>
+            }
+            @if (f['username'].errors['minlength']) {
+              <span>Username must be at least 3 characters</span>
+            }
+            @if (f['username'].errors['maxlength']) {
+              <span>Username can't exceed 50 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          class="form-control"
+          [class.is-invalid]="submitted && f['email'].errors"
+          placeholder="Enter your email"
+          [disabled]="loading"
+        />
+        @if (submitted && f['email'].errors) {
+          <div class="field-error">
+            @if (f['email'].errors['required']) {
+              <span>Email is required</span>
+            }
+            @if (f['email'].errors['email']) {
+              <span>Please enter a valid email address</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-control"
+            [class.is-invalid]="submitted && f['password'].errors"
+            placeholder="Create a strong password"
+            [disabled]="loading"
+            (input)="calculatePasswordStrength()"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [disabled]="loading"
+          >
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        
+        <!-- Password Strength Indicator -->
+        @if (f['password'].value) {
+          <div class="password-strength">
+            <div class="strength-bar-container">
+              <div 
+                class="strength-bar" 
+                [ngClass]="'strength-' + getPasswordStrengthClass()"
+                [style.width.%]="(passwordStrength / 5) * 100"
+              ></div>
+            </div>
+            <span class="strength-text" [ngClass]="'strength-' + getPasswordStrengthClass()">
+              {{ getPasswordStrengthText() }}
+            </span>
+          </div>
+        }
+
+        @if (submitted && f['password'].errors) {
+          <div class="field-error">
+            @if (f['password'].errors['required']) {
+              <span>Password is required</span>
+            }
+            @if (f['password'].errors['minlength']) {
+              <span>Password must be at least 8 characters</span>
+            }
+            @if (f['password'].errors['maxlength']) {
+              <span>Password can't exceed 128 characters</span>
+            }
+          </div>
+        }
+
+        <p class="password-hint">Use a mix of uppercase, lowercase, numbers, and special characters</p>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            class="form-control"
+            [class.is-invalid]="submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])"
+            placeholder="Confirm your password"
+            [disabled]="loading"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="toggleConfirmPasswordVisibility()"
+            [disabled]="loading"
+          >
+            {{ showConfirmPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        @if (submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])) {
+          <div class="field-error">
+            @if (f['confirmPassword'].errors?.['required']) {
+              <span>Confirm password is required</span>
+            }
+            @if (registerForm.errors?.['passwordMismatch']) {
+              <span>Passwords do not match</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="agreeTerms"
+            class="checkbox-input"
+            [disabled]="loading"
+          />
+          <span class="checkbox-text">
+            I agree to the <a href="javascript:void(0)" class="link">Terms and Conditions</a> and <a href="javascript:void(0)" class="link">Privacy Policy</a>
+          </span>
+        </label>
+        @if (submitted && f['agreeTerms'].errors) {
+          <div class="field-error">
+            @if (f['agreeTerms'].errors['required']) {
+              <span>You must agree to the terms and conditions</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading || registerForm.invalid"
+      >
+        @if (!loading) {
+          <span>Create Account</span>
+        } @else {
+          <span class="spinner">
+            <span class="spinner-dot"></span> Creating account...
+          </span>
+        }
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="register-footer">
+      <p>Already have an account?
+        <a href="javascript:void(0)" (click)="goToLogin()" class="link">Sign in here</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,98 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Task Manager</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Error Message -->
+      @if (error) {
+        <div class="alert alert-error">
+          <span class="alert-icon">⚠️</span>
+          <span>{{ error }}</span>
+        </div>
+      }
+
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input
+          type="text"
+          id="username"
+          formControlName="username"
+          class="form-control"
+          [class.is-invalid]="submitted && f['username'].errors"
+          placeholder="Enter your username"
+          [disabled]="loading"
+        />
+        @if (submitted && f['username'].errors) {
+          <div class="field-error">
+            @if (f['username'].errors['required']) {
+              <span>Username is required</span>
+            }
+            @if (f['username'].errors['minlength']) {
+              <span>Username must be at least 3 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="password-input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            class="form-control"
+            [class.is-invalid]="submitted && f['password'].errors"
+            placeholder="Enter your password"
+            [disabled]="loading"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            [disabled]="loading"
+          >
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+        @if (submitted && f['password'].errors) {
+          <div class="field-error">
+            @if (f['password'].errors['required']) {
+              <span>Password is required</span>
+            }
+            @if (f['password'].errors['minlength']) {
+              <span>Password must be at least 8 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading || loginForm.invalid"
+      >
+        @if (!loading) {
+          <span>Sign In</span>
+        } @else {
+          <span class="spinner">
+            <span class="spinner-dot"></span> Signing in...
+          </span>
+        }
+      </button>
+    </form>
+
+    <!-- Signup Link -->
+    <div class="login-footer">
+      <p>Don't have an account?
+        <a href="javascript:void(0)" (click)="goToSignup()" class="link">Sign up here</a>
+      </p>
+    </div>
+  </div>
+</div>
