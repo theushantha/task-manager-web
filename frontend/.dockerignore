@@ -1,0 +1,7 @@
+node_modules
+dist
+.angular
+frontend.log
+npm-debug.log
+.git
+.gitignore
