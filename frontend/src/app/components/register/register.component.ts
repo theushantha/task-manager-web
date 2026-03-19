@@ -38,8 +38,7 @@ export class RegisterComponent implements OnInit {
         username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
-        confirmPassword: ['', Validators.required],
-        agreeTerms: [false, Validators.requiredTrue]
+        confirmPassword: ['', Validators.required]
       },
       {
         validators: this.passwordMatchValidator()
@@ -134,6 +133,8 @@ export class RegisterComponent implements OnInit {
     }
 
     this.loading = true;
+    this.disableForm();
+
     const signupRequest: SignupRequest = {
       username: this.f['username'].value,
       email: this.f['email'].value,
@@ -145,16 +146,30 @@ export class RegisterComponent implements OnInit {
       next: (response) => {
         console.log('Signup successful:', response);
         this.loading = false;
-        this.success = 'Account created successfully! Redirecting...';
+        this.enableForm();
+        this.success = 'Account created successfully! Redirecting to login...';
         setTimeout(() => {
-          this.router.navigate(['/tasks']);
+          this.router.navigate(['/auth/login']);
         }, 1500);
       },
       error: (error) => {
         console.error('Signup failed:', error);
         this.error = error.message || 'Signup failed. Please try again.';
         this.loading = false;
+        this.enableForm();
       }
+    });
+  }
+
+  private disableForm(): void {
+    Object.keys(this.registerForm.controls).forEach(key => {
+      this.registerForm.get(key)?.disable();
+    });
+  }
+
+  private enableForm(): void {
+    Object.keys(this.registerForm.controls).forEach(key => {
+      this.registerForm.get(key)?.enable();
     });
   }
 

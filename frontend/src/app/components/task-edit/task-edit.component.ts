@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { Task, TaskPriority, TaskStatus } from '../../models/task.model';
+import { NavbarComponent } from '../navbar/navbar.component';
 import { CanComponentDeactivate } from '../../guards/unsaved-changes.guard';
 import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -11,7 +12,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-task-edit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
   templateUrl: './task-edit.component.html',
   styleUrls: ['./task-edit.component.scss']
 })

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { TaskPriority, TaskStatus } from '../../models/task.model';
+import { NavbarComponent } from '../navbar/navbar.component';
 import { CanComponentDeactivate } from '../../guards/unsaved-changes.guard';
 import { Subject, Observable } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -11,7 +12,7 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-task-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NavbarComponent],
   templateUrl: './task-create.component.html',
   styleUrls: ['./task-create.component.scss']
 })
@@ -85,11 +86,10 @@ export class TaskCreateComponent implements OnInit, OnDestroy, CanComponentDeact
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.success = true;
           this.loading = false;
-          setTimeout(() => {
-            this.router.navigate(['/tasks']);
-          }, 1500);
+          this.success = true;
+          // Immediately return to dashboard so the new task is visible.
+          this.router.navigate(['/tasks']);
         },
         error: (error) => {
           this.error = error.message || 'Failed to create task';

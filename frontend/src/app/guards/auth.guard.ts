@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate {
           // Validation request failed, logout and redirect
           this.authService.logout();
           this.router.navigate(['/auth/login']);
-          return [false];
+          return of(false);
         })
       );
     }

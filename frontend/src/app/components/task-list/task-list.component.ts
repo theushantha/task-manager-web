@@ -1,23 +1,27 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { Task, TaskStatus, TaskPriority } from '../../models/task.model';
-import { Subject } from 'rxjs';
+import { NavbarComponent } from '../navbar/navbar.component';
+import { Subject, debounceTime } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './task-list.component.html',
-  styleUrls: ['./task-list.component.scss']
+  styleUrls: ['./task-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TaskListComponent implements OnInit, OnDestroy {
   private taskService = inject(TaskService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
+  private searchTerm$ = new Subject<string>();
 
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
@@ -32,6 +36,32 @@ export class TaskListComponent implements OnInit, OnDestroy {
   TaskPriority = TaskPriority;
 
   ngOnInit(): void {
+    // Subscribe to service tasks for real-time updates
+    this.taskService.tasks$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tasks) => {
+          this.tasks = tasks || [];
+          this.applyFilters();
+          this.cdr.markForCheck();
+        }
+      });
+
+    // Handle search with debounce
+    this.searchTerm$
+      .pipe(
+        debounceTime(300),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (term) => {
+          this.searchTerm = term;
+          this.applyFilters();
+          this.cdr.markForCheck();
+        }
+      });
+
+    // Load initial tasks
     this.loadTasks();
   }
 
@@ -43,24 +73,27 @@ export class TaskListComponent implements OnInit, OnDestroy {
   loadTasks(): void {
     this.loading = true;
     this.error = '';
+    this.selectedFilter = 'all'; // Reset filter when loading
     
     this.taskService.getAllTasks()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
-          this.tasks = tasks;
+          this.tasks = tasks || [];
           this.applyFilters();
           this.loading = false;
         },
         error: (error) => {
           this.error = error.message || 'Failed to load tasks';
+          this.tasks = [];
+          this.filteredTasks = [];
           this.loading = false;
         }
       });
   }
 
   applyFilters(): void {
-    let filtered = this.tasks;
+    let filtered = [...this.tasks]; // Create copy to avoid mutations
 
     // Apply filter
     switch (this.selectedFilter) {
@@ -74,16 +107,20 @@ export class TaskListComponent implements OnInit, OnDestroy {
         filtered = filtered.filter(t => t.status === TaskStatus.COMPLETED);
         break;
       case 'starred':
-        filtered = filtered.filter(t => t.starred);
+        filtered = filtered.filter(t => t.starred === true);
+        break;
+      case 'all':
+      default:
+        // No additional filtering needed for 'all'
         break;
     }
 
     // Apply search
-    if (this.searchTerm.trim()) {
+    if (this.searchTerm && this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(t =>
-        t.title.toLowerCase().includes(term) ||
-        t.description.toLowerCase().includes(term)
+        (t.title && t.title.toLowerCase().includes(term)) ||
+        (t.description && t.description.toLowerCase().includes(term))
       );
     }
 
@@ -92,10 +129,11 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   onFilterChange(): void {
     this.applyFilters();
+    this.cdr.markForCheck();
   }
 
   onSearchChange(): void {
-    this.applyFilters();
+    this.searchTerm$.next(this.searchTerm);
   }
 
   onStatusChange(task: Task, newStatus: string): void {
@@ -103,10 +141,11 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.applyFilters();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.error = error.message || 'Failed to update task status';
+          this.cdr.markForCheck();
         }
       });
   }
@@ -122,10 +161,11 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.applyFilters();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.error = error.message || 'Failed to toggle starred';
+          this.cdr.markForCheck();
         }
       });
   }
@@ -137,11 +177,13 @@ export class TaskListComponent implements OnInit, OnDestroy {
   confirmDelete(event: Event, taskId: string): void {
     event.stopPropagation();
     this.deleteConfirmId = taskId;
+    this.cdr.markForCheck();
   }
 
   cancelDelete(event: Event): void {
     event.stopPropagation();
     this.deleteConfirmId = null;
+    this.cdr.markForCheck();
   }
 
   deleteTask(event: Event): void {
@@ -153,11 +195,13 @@ export class TaskListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.deleteConfirmId = null;
-          this.applyFilters();
+          this.loadTasks(); // Reload to ensure UI is in sync
+          this.cdr.markForCheck();
         },
         error: (error) => {
           this.error = error.message || 'Failed to delete task';
           this.deleteConfirmId = null;
+          this.cdr.markForCheck();
         }
       });
   }

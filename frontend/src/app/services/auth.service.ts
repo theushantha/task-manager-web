@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AuthRequest, AuthResponse, SignupRequest, ApiResponse, UserProfile } from '../models/auth.model';
@@ -27,37 +27,37 @@ export class AuthService {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/login`, authRequest)
       .pipe(
         map(response => {
-          if (response.success && response.data) {
+          if (this.isOk(response.code) && response.data) {
             this.setToken(response.data.token);
             this.setCurrentUser(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Login failed');
+          throw new Error(response.message || 'Login failed');
         }),
         catchError(error => {
           console.error('Login error:', error);
-          return throwError(() => new Error(error.error?.error || 'Login failed'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Login failed')));
         })
       );
   }
 
   /**
    * Signup with new user credentials
+   * Note: Does NOT auto-login. User must login after signup.
    */
   signup(signupRequest: SignupRequest): Observable<AuthResponse> {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.apiUrl}/signup`, signupRequest)
       .pipe(
         map(response => {
-          if (response.success && response.data) {
-            this.setToken(response.data.token);
-            this.setCurrentUser(response.data);
+          if (this.isOk(response.code) && response.data) {
+            // Don't set token or user after signup - let user login manually
             return response.data;
           }
-          throw new Error(response.error || 'Signup failed');
+          throw new Error(response.message || 'Signup failed');
         }),
         catchError(error => {
           console.error('Signup error:', error);
-          return throwError(() => new Error(error.error?.error || 'Signup failed'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Signup failed')));
         })
       );
   }
@@ -68,21 +68,16 @@ export class AuthService {
   validateToken(): Observable<boolean> {
     const token = this.getTokenFromStorage();
     if (!token) {
-      return new Observable(observer => {
-        observer.next(false);
-        observer.complete();
-      });
+      return of(false);
     }
 
-    return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/validate`, {})
+    const params = new HttpParams().set('token', token);
+    return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/validate`, {}, { params })
       .pipe(
-        map(response => response.success),
+        map(response => this.isOk(response.code) && response.data === true),
         catchError(() => {
           this.logout();
-          return new Observable<boolean>(observer => {
-            observer.next(false);
-            observer.complete();
-          });
+          return of(false);
         })
       );
   }
@@ -105,15 +100,15 @@ export class AuthService {
     return this.http.get<ApiResponse<UserProfile>>(`${this.apiUrl}/profile`)
       .pipe(
         map(response => {
-          if (response.success && response.data) {
+          if (this.isOk(response.code) && response.data) {
             this.setCurrentUser(response.data);
             return response.data;
           }
-          throw new Error('Failed to fetch profile');
+          throw new Error(response.message || 'Failed to fetch profile');
         }),
         catchError(error => {
           console.error('Get profile error:', error);
-          return throwError(() => new Error('Failed to fetch profile'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch profile')));
         })
       );
   }
@@ -199,5 +194,36 @@ export class AuthService {
 
   private removeCurrentUser(): void {
     localStorage.removeItem('current_user');
+  }
+
+  private isOk(code: number): boolean {
+    return code >= 200 && code < 300;
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    const anyError = error as any;
+    const serverError = anyError?.error;
+
+    if (typeof serverError === 'string') {
+      return serverError;
+    }
+
+    if (serverError?.message) {
+      return serverError.message;
+    }
+
+    if (serverError?.error) {
+      return serverError.error;
+    }
+
+    if (anyError?.message) {
+      return anyError.message;
+    }
+
+    return fallback;
   }
 }

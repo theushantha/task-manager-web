@@ -4,7 +4,13 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Task, TaskCreateRequest, TaskStatus, TaskStats } from '../models/task.model';
-import { ApiResponse } from '../models/auth.model';
+
+interface TaskApiResponse<T> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -31,19 +37,19 @@ export class TaskService {
    */
   getAllTasks(): Observable<Task[]> {
     this.loadingSubject.next(true);
-    return this.http.get<ApiResponse<Task[]>>(this.apiUrl)
+    return this.http.get<TaskApiResponse<Task[]>>(this.apiUrl)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             this.tasksSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch tasks');
+          throw new Error(response.error || response.message || 'Failed to fetch tasks');
         }),
         catchError(error => {
           console.error('Get tasks error:', error);
           this.loadingSubject.next(false);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch tasks'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch tasks')));
         }),
         tap(() => this.loadingSubject.next(false))
       );
@@ -53,18 +59,18 @@ export class TaskService {
    * Get single task by ID
    */
   getTaskById(taskId: string): Observable<Task> {
-    return this.http.get<ApiResponse<Task>>(`${this.apiUrl}/${taskId}`)
+    return this.http.get<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}`)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             this.selectedTaskSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch task');
+          throw new Error(response.error || response.message || 'Failed to fetch task');
         }),
         catchError(error => {
           console.error('Get task error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch task')));
         })
       );
   }
@@ -74,7 +80,7 @@ export class TaskService {
    */
   createTask(taskData: TaskCreateRequest): Observable<Task> {
     this.loadingSubject.next(true);
-    return this.http.post<ApiResponse<Task>>(this.apiUrl, taskData)
+    return this.http.post<TaskApiResponse<Task>>(this.apiUrl, taskData)
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -82,12 +88,12 @@ export class TaskService {
             this.tasksSubject.next([...currentTasks, response.data]);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to create task');
+          throw new Error(response.error || response.message || 'Failed to create task');
         }),
         catchError(error => {
           console.error('Create task error:', error);
           this.loadingSubject.next(false);
-          return throwError(() => new Error(error.error?.error || 'Failed to create task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to create task')));
         }),
         tap(() => this.loadingSubject.next(false))
       );
@@ -98,7 +104,7 @@ export class TaskService {
    */
   updateTask(taskId: string, taskData: TaskCreateRequest): Observable<Task> {
     this.loadingSubject.next(true);
-    return this.http.put<ApiResponse<Task>>(`${this.apiUrl}/${taskId}`, taskData)
+    return this.http.put<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}`, taskData)
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -109,12 +115,12 @@ export class TaskService {
             this.selectedTaskSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to update task');
+          throw new Error(response.error || response.message || 'Failed to update task');
         }),
         catchError(error => {
           console.error('Update task error:', error);
           this.loadingSubject.next(false);
-          return throwError(() => new Error(error.error?.error || 'Failed to update task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to update task')));
         }),
         tap(() => this.loadingSubject.next(false))
       );
@@ -125,7 +131,7 @@ export class TaskService {
    */
   deleteTask(taskId: string): Observable<void> {
     this.loadingSubject.next(true);
-    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${taskId}`)
+    return this.http.delete<TaskApiResponse<void>>(`${this.apiUrl}/${taskId}`)
       .pipe(
         map(response => {
           if (response.success) {
@@ -136,12 +142,12 @@ export class TaskService {
             }
             return undefined;
           }
-          throw new Error(response.error || 'Failed to delete task');
+          throw new Error(response.error || response.message || 'Failed to delete task');
         }),
         catchError(error => {
           console.error('Delete task error:', error);
           this.loadingSubject.next(false);
-          return throwError(() => new Error(error.error?.error || 'Failed to delete task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to delete task')));
         }),
         tap(() => this.loadingSubject.next(false))
       );
@@ -151,17 +157,17 @@ export class TaskService {
    * Get tasks by status
    */
   getTasksByStatus(status: TaskStatus): Observable<Task[]> {
-    return this.http.get<ApiResponse<Task[]>>(`${this.apiUrl}/status/${status}`)
+    return this.http.get<TaskApiResponse<Task[]>>(`${this.apiUrl}/status/${status}`)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch tasks');
+          throw new Error(response.error || response.message || 'Failed to fetch tasks');
         }),
         catchError(error => {
           console.error('Get tasks by status error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch tasks'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch tasks')));
         })
       );
   }
@@ -171,7 +177,7 @@ export class TaskService {
    */
   updateTaskStatus(taskId: string, status: TaskStatus): Observable<Task> {
     const params = new HttpParams().set('status', status);
-    return this.http.patch<ApiResponse<Task>>(`${this.apiUrl}/${taskId}/status`, {}, { params })
+    return this.http.patch<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}/status`, {}, { params })
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -182,11 +188,11 @@ export class TaskService {
             this.selectedTaskSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to update status');
+          throw new Error(response.error || response.message || 'Failed to update status');
         }),
         catchError(error => {
           console.error('Update status error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to update status'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to update status')));
         })
       );
   }
@@ -195,7 +201,7 @@ export class TaskService {
    * Mark task as completed
    */
   completeTask(taskId: string): Observable<Task> {
-    return this.http.post<ApiResponse<Task>>(`${this.apiUrl}/${taskId}/complete`, {})
+    return this.http.post<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}/complete`, {})
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -206,11 +212,11 @@ export class TaskService {
             this.selectedTaskSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to complete task');
+          throw new Error(response.error || response.message || 'Failed to complete task');
         }),
         catchError(error => {
           console.error('Complete task error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to complete task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to complete task')));
         })
       );
   }
@@ -219,7 +225,7 @@ export class TaskService {
    * Mark task as in progress
    */
   markInProgress(taskId: string): Observable<Task> {
-    return this.http.post<ApiResponse<Task>>(`${this.apiUrl}/${taskId}/in-progress`, {})
+    return this.http.post<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}/in-progress`, {})
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -229,11 +235,11 @@ export class TaskService {
             this.tasksSubject.next(updatedTasks);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to mark task');
+          throw new Error(response.error || response.message || 'Failed to mark task');
         }),
         catchError(error => {
           console.error('Mark in progress error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to mark task'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to mark task')));
         })
       );
   }
@@ -242,7 +248,7 @@ export class TaskService {
    * Toggle task starred status
    */
   toggleStarred(taskId: string): Observable<Task> {
-    return this.http.post<ApiResponse<Task>>(`${this.apiUrl}/${taskId}/toggle-starred`, {})
+    return this.http.post<TaskApiResponse<Task>>(`${this.apiUrl}/${taskId}/toggle-starred`, {})
       .pipe(
         map(response => {
           if (response.success && response.data) {
@@ -252,11 +258,11 @@ export class TaskService {
             this.tasksSubject.next(updatedTasks);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to toggle starred');
+          throw new Error(response.error || response.message || 'Failed to toggle starred');
         }),
         catchError(error => {
           console.error('Toggle starred error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to toggle starred'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to toggle starred')));
         })
       );
   }
@@ -265,18 +271,18 @@ export class TaskService {
    * Get task statistics
    */
   getStats(): Observable<TaskStats> {
-    return this.http.get<ApiResponse<TaskStats>>(`${this.apiUrl}/stats/overview`)
+    return this.http.get<TaskApiResponse<TaskStats>>(`${this.apiUrl}/stats/overview`)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             this.statsSubject.next(response.data);
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch stats');
+          throw new Error(response.error || response.message || 'Failed to fetch stats');
         }),
         catchError(error => {
           console.error('Get stats error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch stats'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch stats')));
         })
       );
   }
@@ -286,17 +292,17 @@ export class TaskService {
    */
   searchTasks(searchTerm: string): Observable<Task[]> {
     const params = new HttpParams().set('q', searchTerm);
-    return this.http.get<ApiResponse<Task[]>>(`${this.apiUrl}/search`, { params })
+    return this.http.get<TaskApiResponse<Task[]>>(`${this.apiUrl}/search`, { params })
       .pipe(
         map(response => {
           if (response.success && response.data) {
             return response.data;
           }
-          throw new Error(response.error || 'Search failed');
+          throw new Error(response.error || response.message || 'Search failed');
         }),
         catchError(error => {
           console.error('Search error:', error);
-          return throwError(() => new Error(error.error?.error || 'Search failed'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Search failed')));
         })
       );
   }
@@ -305,17 +311,17 @@ export class TaskService {
    * Get completed tasks
    */
   getCompletedTasks(): Observable<Task[]> {
-    return this.http.get<ApiResponse<Task[]>>(`${this.apiUrl}/completed`)
+    return this.http.get<TaskApiResponse<Task[]>>(`${this.apiUrl}/completed`)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch completed tasks');
+          throw new Error(response.error || response.message || 'Failed to fetch completed tasks');
         }),
         catchError(error => {
           console.error('Get completed tasks error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch tasks'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch tasks')));
         })
       );
   }
@@ -324,18 +330,45 @@ export class TaskService {
    * Get overdue tasks
    */
   getOverdueTasks(): Observable<Task[]> {
-    return this.http.get<ApiResponse<Task[]>>(`${this.apiUrl}/overdue`)
+    return this.http.get<TaskApiResponse<Task[]>>(`${this.apiUrl}/overdue`)
       .pipe(
         map(response => {
           if (response.success && response.data) {
             return response.data;
           }
-          throw new Error(response.error || 'Failed to fetch overdue tasks');
+          throw new Error(response.error || response.message || 'Failed to fetch overdue tasks');
         }),
         catchError(error => {
           console.error('Get overdue tasks error:', error);
-          return throwError(() => new Error(error.error?.error || 'Failed to fetch tasks'));
+          return throwError(() => new Error(this.extractErrorMessage(error, 'Failed to fetch tasks')));
         })
       );
+  }
+
+  private extractErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof Error) {
+      return error.message || fallback;
+    }
+
+    const anyError = error as any;
+    const serverError = anyError?.error;
+
+    if (typeof serverError === 'string') {
+      return serverError;
+    }
+
+    if (serverError?.message) {
+      return serverError.message;
+    }
+
+    if (serverError?.error) {
+      return serverError.error;
+    }
+
+    if (anyError?.message) {
+      return anyError.message;
+    }
+
+    return fallback;
   }
 }

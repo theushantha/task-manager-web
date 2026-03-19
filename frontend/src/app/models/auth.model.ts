@@ -37,8 +37,8 @@ export interface UserProfile {
 
 // API Response wrapper
 export interface ApiResponse<T> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  error?: string;
+  code: number;
+  message: string;
+  data: T;
+  timestamp: number;
 }

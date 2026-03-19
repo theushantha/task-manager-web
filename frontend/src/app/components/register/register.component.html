@@ -32,7 +32,6 @@
           class="form-control"
           [class.is-invalid]="submitted && f['username'].errors"
           placeholder="Choose a username"
-          [disabled]="loading"
         />
         @if (submitted && f['username'].errors) {
           <div class="field-error">
@@ -59,7 +58,6 @@
           class="form-control"
           [class.is-invalid]="submitted && f['email'].errors"
           placeholder="Enter your email"
-          [disabled]="loading"
         />
         @if (submitted && f['email'].errors) {
           <div class="field-error">
@@ -84,14 +82,12 @@
             class="form-control"
             [class.is-invalid]="submitted && f['password'].errors"
             placeholder="Create a strong password"
-            [disabled]="loading"
             (input)="calculatePasswordStrength()"
           />
           <button
             type="button"
             class="password-toggle"
             (click)="togglePasswordVisibility()"
-            [disabled]="loading"
           >
             {{ showPassword ? '🙈' : '👁️' }}
           </button>
@@ -141,13 +137,11 @@
             class="form-control"
             [class.is-invalid]="submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])"
             placeholder="Confirm your password"
-            [disabled]="loading"
           />
           <button
             type="button"
             class="password-toggle"
             (click)="toggleConfirmPasswordVisibility()"
-            [disabled]="loading"
           >
             {{ showConfirmPassword ? '🙈' : '👁️' }}
           </button>
@@ -159,28 +153,6 @@
             }
             @if (registerForm.errors?.['passwordMismatch']) {
               <span>Passwords do not match</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Terms and Conditions -->
-      <div class="form-group checkbox-group">
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            formControlName="agreeTerms"
-            class="checkbox-input"
-            [disabled]="loading"
-          />
-          <span class="checkbox-text">
-            I agree to the <a href="javascript:void(0)" class="link">Terms and Conditions</a> and <a href="javascript:void(0)" class="link">Privacy Policy</a>
-          </span>
-        </label>
-        @if (submitted && f['agreeTerms'].errors) {
-          <div class="field-error">
-            @if (f['agreeTerms'].errors['required']) {
-              <span>You must agree to the terms and conditions</span>
             }
           </div>
         }
