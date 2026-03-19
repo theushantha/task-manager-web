@@ -3,6 +3,7 @@
 <div class="task-form-container">
   <div class="form-header">
     <h1>Update Task</h1>
+    <p>Refine details, status, and timeline before saving your changes.</p>
   </div>
 
   <!-- Initial Loading State -->
@@ -23,6 +24,10 @@
     }
 
     <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
+      <div class="task-id-badge">
+        Editing Task ID: <strong>{{ taskId }}</strong>
+      </div>
+
       <!-- Title Field -->
       <div class="form-group">
         <label for="title" class="form-label">Task Title <span class="required">*</span></label>
@@ -100,7 +105,11 @@
           <select
             id="status"
             formControlName="status"
-            class="form-control"
+            class="form-control task-status-select"
+            [class.status-pending]="f['status'].value === TaskStatus.PENDING"
+            [class.status-in-progress]="f['status'].value === TaskStatus.IN_PROGRESS"
+            [class.status-completed]="f['status'].value === TaskStatus.COMPLETED"
+            [class.status-cancelled]="f['status'].value === TaskStatus.CANCELLED"
             [disabled]="loading"
           >
             @for (status of statusOptions; track status) {
@@ -156,10 +165,10 @@
           [disabled]="loading"
         >
           @if (!loading) {
-            <span>Update Task</span>
+            <span>Save Changes</span>
           } @else {
-            <span class="spinner">
-              <span class="spinner-dot"></span> Updating...
+            <span class="spinner" aria-live="polite">
+              <span class="spinner-dot"></span> Saving...
             </span>
           }
         </button>
@@ -169,7 +178,7 @@
           (click)="cancel()"
           [disabled]="loading"
         >
-          Cancel
+          Back to Dashboard
         </button>
       </div>
     </form>

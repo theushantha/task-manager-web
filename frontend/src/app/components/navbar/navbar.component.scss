@@ -101,10 +101,20 @@
     .dropdown-header {
       padding: 0.8rem 1rem 0.65rem;
 
+      .dropdown-label {
+        margin: 0 0 0.2rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #8aa0bc;
+        font-weight: 700;
+      }
+
       .user-email {
         margin: 0;
-        font-size: 0.82rem;
-        color: #6d8098;
+        font-size: 0.86rem;
+        color: #3a5f88;
+        font-weight: 600;
         word-break: break-word;
       }
     }
@@ -119,12 +129,12 @@
       border: none;
       background: transparent;
       text-align: left;
-      padding: 0.75rem 1rem;
+      padding: 0.72rem 1rem;
       font-size: 0.92rem;
       color: #345173;
       display: flex;
       align-items: center;
-      gap: 0.55rem;
+      gap: 0.68rem;
       cursor: pointer;
       transition: background-color 0.2s ease;
 
@@ -133,10 +143,48 @@
       }
 
       &.logout-btn {
-        color: #b24646;
+        color: #8e3434;
+
+        .logout-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 9px;
+          border: 1px solid #f2caca;
+          background: #fff6f6;
+          display: grid;
+          place-items: center;
+          flex-shrink: 0;
+
+          svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+          }
+        }
+
+        .logout-text {
+          display: flex;
+          flex-direction: column;
+          gap: 0.05rem;
+
+          strong {
+            font-size: 0.88rem;
+            line-height: 1.1;
+            font-weight: 700;
+          }
+
+          small {
+            font-size: 0.72rem;
+            color: #b36a6a;
+          }
+        }
 
         &:hover {
-          background: #fff1f1;
+          background: #fff2f2;
         }
       }
     }

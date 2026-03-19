@@ -32,6 +32,21 @@ export class TaskService {
   private statsSubject = new BehaviorSubject<TaskStats | null>(null);
   public stats$ = this.statsSubject.asObservable();
 
+  private upsertTaskInState(task: Task): void {
+    const currentTasks = this.tasksSubject.value;
+    const existingIndex = currentTasks.findIndex((t) => t.id === task.id);
+
+    if (existingIndex >= 0) {
+      const updatedTasks = [...currentTasks];
+      updatedTasks[existingIndex] = task;
+      this.tasksSubject.next(updatedTasks);
+    } else {
+      this.tasksSubject.next([task, ...currentTasks]);
+    }
+
+    this.selectedTaskSubject.next(task);
+  }
+
   /**
    * Get all tasks for current user
    */
@@ -108,11 +123,7 @@ export class TaskService {
       .pipe(
         map(response => {
           if (response.success && response.data) {
-            const updatedTasks = this.tasksSubject.value.map(t =>
-              t.id === taskId ? response.data : t
-            ).filter(t => !!t) as Task[];
-            this.tasksSubject.next(updatedTasks);
-            this.selectedTaskSubject.next(response.data);
+            this.upsertTaskInState(response.data);
             return response.data;
           }
           throw new Error(response.error || response.message || 'Failed to update task');
@@ -181,11 +192,7 @@ export class TaskService {
       .pipe(
         map(response => {
           if (response.success && response.data) {
-            const updatedTasks = this.tasksSubject.value.map(t =>
-              t.id === taskId ? response.data : t
-            ).filter(t => !!t) as Task[];
-            this.tasksSubject.next(updatedTasks);
-            this.selectedTaskSubject.next(response.data);
+            this.upsertTaskInState(response.data);
             return response.data;
           }
           throw new Error(response.error || response.message || 'Failed to update status');

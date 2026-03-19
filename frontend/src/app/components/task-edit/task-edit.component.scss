@@ -13,6 +13,13 @@
     margin: 0;
     font-weight: 700;
   }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: #6281a5;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
 }
 
 .loading-container {
@@ -82,6 +89,24 @@
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+}
+
+.task-id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f3f8ff;
+  color: #4a688d;
+  border: 1px solid #d5e5fa;
+  border-radius: 999px;
+  padding: 0.35rem 0.72rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  strong {
+    color: #2e5d94;
+    letter-spacing: 0.01em;
+  }
 }
 
 .form-group {
@@ -191,6 +216,52 @@
 
   .form-group {
     gap: 0.45rem;
+  }
+}
+
+.task-status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  font-weight: 700;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%23617da1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 12px;
+
+  &:focus {
+    border-color: #8ebcf3;
+    box-shadow: 0 0 0 3px rgba(115, 175, 245, 0.18);
+  }
+
+  &.status-pending {
+    border-color: #f3c274;
+    color: #ad6b17;
+    background-color: #fff8ee;
+  }
+
+  &.status-in-progress {
+    border-color: #9ac9fb;
+    color: #266fbe;
+    background-color: #eef6ff;
+  }
+
+  &.status-completed {
+    border-color: #98d7b5;
+    color: #1f885a;
+    background-color: #edf9f2;
+  }
+
+  &.status-cancelled {
+    border-color: #f2b0b0;
+    color: #a14545;
+    background-color: #fff3f3;
+  }
+
+  option {
+    background: #ffffff;
+    color: #2d4f77;
+    font-weight: 600;
   }
 }
 

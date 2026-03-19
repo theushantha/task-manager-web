@@ -14,57 +14,59 @@
     </div>
   }
 
-  <!-- Search and Filter Bar -->
-  <div class="task-controls">
-    <div class="search-box">
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Search tasks..."
-        [(ngModel)]="searchTerm"
-        (input)="onSearchChange()"
-      />
-      <span class="search-icon">🔍</span>
-    </div>
+  @if (!getSelectedTask()) {
+    <!-- Search and Filter Bar -->
+    <div class="task-controls">
+      <div class="search-box">
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search tasks..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
 
-    <div class="filter-buttons">
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter === 'all'"
-        (click)="selectedFilter = 'all'; onFilterChange()"
-      >
-        All
-      </button>
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter === 'pending'"
-        (click)="selectedFilter = 'pending'; onFilterChange()"
-      >
-        Pending
-      </button>
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter === 'inProgress'"
-        (click)="selectedFilter = 'inProgress'; onFilterChange()"
-      >
-        In Progress
-      </button>
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter === 'completed'"
-        (click)="selectedFilter = 'completed'; onFilterChange()"
-      >
-        Completed
-      </button>
-      <button
-        class="filter-btn"
-        [class.active]="selectedFilter === 'starred'"
-        (click)="selectedFilter = 'starred'; onFilterChange()"
-      >
-        ⭐ Starred
-      </button>
+      <div class="filter-buttons">
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter === 'all'"
+          (click)="selectedFilter = 'all'; onFilterChange()"
+        >
+          All
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter === 'pending'"
+          (click)="selectedFilter = 'pending'; onFilterChange()"
+        >
+          Pending
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter === 'inProgress'"
+          (click)="selectedFilter = 'inProgress'; onFilterChange()"
+        >
+          In Progress
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter === 'completed'"
+          (click)="selectedFilter = 'completed'; onFilterChange()"
+        >
+          Completed
+        </button>
+        <button
+          class="filter-btn"
+          [class.active]="selectedFilter === 'starred'"
+          (click)="selectedFilter = 'starred'; onFilterChange()"
+        >
+          ⭐ Starred
+        </button>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Loading State -->
   @if (loading) {
@@ -83,15 +85,22 @@
   }
 
   <!-- Tasks List -->
-  @if (!loading && filteredTasks.length > 0) {
-    <div class="tasks-grid">
+  @if (!loading && filteredTasks.length > 0 && !getSelectedTask()) {
+    <div class="tasks-grid" role="listbox" aria-label="Tasks">
       @for (task of filteredTasks; track task.id) {
-        <div class="task-card" [class.completed]="task.status === TaskStatus.COMPLETED">
+        <div
+          class="task-card"
+          [class.completed]="task.status === TaskStatus.COMPLETED"
+          (click)="selectTask(task.id)"
+          role="option"
+          [attr.aria-selected]="isTaskSelected(task.id)"
+        >
           <div class="task-card-header">
             <div class="task-title-section">
               <select
                 [value]="task.status"
                 (change)="handleStatusChange($event, task)"
+                (click)="$event.stopPropagation()"
                 class="status-select"
                 [class]="getStatusClass(task.status)"
               >
@@ -116,14 +125,23 @@
                 (click)="editTask(task)"
                 title="Edit task"
               >
-                ✏️
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                </svg>
               </button>
               <button
                 class="action-btn delete-btn"
-                (click)="confirmDelete($event, task.id)"
+                (click)="confirmDelete($event, task)"
                 title="Delete task"
               >
-                🗑️
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4h8v2" />
+                  <path d="M19 6l-1 14H6L5 6" />
+                  <path d="M10 10v6" />
+                  <path d="M14 10v6" />
+                </svg>
               </button>
             </div>
           </div>
@@ -160,19 +178,103 @@
               }
             </div>
           }
+        </div>
+      }
+    </div>
+  }
 
-          <!-- Delete Confirmation -->
-          @if (deleteConfirmId === task.id) {
-            <div class="delete-confirmation">
-              <p>Are you sure you want to delete this task?</p>
-              <div class="confirmation-buttons">
-                <button class="btn btn-danger" (click)="deleteTask($event)">Delete</button>
-                <button class="btn btn-secondary" (click)="cancelDelete($event)">Cancel</button>
+  @if (!loading && getSelectedTask(); as selectedTask) {
+    <section class="task-details-view" aria-label="Selected task details">
+      <div class="details-card">
+        <div class="details-header">
+          <h2>Task Details</h2>
+        </div>
+
+        <div class="details-main">
+          <p class="details-title">{{ selectedTask.title }}</p>
+          <p class="details-description">{{ selectedTask.description }}</p>
+
+          <div class="details-meta-grid">
+            <div class="detail-chip">
+              <span class="label">Status</span>
+              <span class="value">{{ selectedTask.status }}</span>
+            </div>
+            <div class="detail-chip">
+              <span class="label">Priority</span>
+              <span class="value">{{ selectedTask.priority }}</span>
+            </div>
+            <div class="detail-chip">
+              <span class="label">Created</span>
+              <span class="value">{{ selectedTask.createdAt | date: 'MMM d, y, h:mm a' }}</span>
+            </div>
+            <div class="detail-chip">
+              <span class="label">Updated</span>
+              <span class="value">{{ selectedTask.updatedAt | date: 'MMM d, y, h:mm a' }}</span>
+            </div>
+            @if (selectedTask.dueDate) {
+              <div class="detail-chip">
+                <span class="label">Due Date</span>
+                <span class="value">{{ selectedTask.dueDate | date: 'MMM d, y' }}</span>
+              </div>
+            }
+            @if (selectedTask.category) {
+              <div class="detail-chip">
+                <span class="label">Category</span>
+                <span class="value">{{ selectedTask.category }}</span>
+              </div>
+            }
+          </div>
+
+          @if (selectedTask.tags && selectedTask.tags.length > 0) {
+            <div class="details-tags">
+              <p>Tags</p>
+              <div>
+                @for (tag of selectedTask.tags; track tag) {
+                  <span>{{ tag }}</span>
+                }
               </div>
             </div>
           }
         </div>
-      }
+
+        <div class="details-actions">
+          <button class="btn btn-secondary" (click)="clearSelectedTask()">Close</button>
+          <button class="btn btn-danger" (click)="confirmDelete($event, selectedTask)">Delete</button>
+          <button class="btn btn-primary" (click)="editTask(selectedTask)">Edit Task</button>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (deleteConfirmId) {
+    <div class="delete-modal-backdrop" (click)="cancelDelete($event)">
+      <div class="delete-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+        <div class="delete-modal-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 10v6" />
+            <path d="M14 10v6" />
+          </svg>
+        </div>
+        <h3 id="delete-title">Delete task</h3>
+        <p>
+          Are you sure you want to delete
+          <strong>{{ deleteConfirmTaskTitle }}</strong>?
+          This action cannot be undone.
+        </p>
+        <div class="delete-modal-actions">
+          <button class="btn btn-secondary" (click)="cancelDelete($event)" [disabled]="deleteLoading">Cancel</button>
+          <button class="btn btn-danger" (click)="deleteTask($event)" [disabled]="deleteLoading">
+            @if (!deleteLoading) {
+              <span>Delete Task</span>
+            } @else {
+              <span>Deleting...</span>
+            }
+          </button>
+        </div>
+      </div>
     </div>
   }
 </div>

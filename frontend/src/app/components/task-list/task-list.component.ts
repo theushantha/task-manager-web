@@ -31,7 +31,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
   error = '';
   searchTerm = '';
   selectedFilter: 'all' | 'pending' | 'inProgress' | 'completed' | 'starred' = 'all';
+  selectedTaskId: string | null = null;
   deleteConfirmId: string | null = null;
+  deleteConfirmTaskTitle = '';
+  deleteLoading = false;
 
   // Status and priority enums for template
   TaskStatus = TaskStatus;
@@ -77,7 +80,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
   loadTasks(): void {
     this.loading = true;
     this.error = '';
-    this.selectedFilter = 'all'; // Reset filter when loading
     
     this.taskService.getAllTasks()
       .pipe(takeUntil(this.destroy$))
@@ -116,6 +118,13 @@ export class TaskListComponent implements OnInit, OnDestroy {
     }
 
     this.filteredTasks = filtered;
+
+    if (this.selectedTaskId) {
+      const selectedExists = filtered.some((task) => task.id === this.selectedTaskId);
+      if (!selectedExists) {
+        this.selectedTaskId = null;
+      }
+    }
   }
 
   onFilterChange(): void {
@@ -130,6 +139,28 @@ export class TaskListComponent implements OnInit, OnDestroy {
   private setTasks(tasks: Task[]): void {
     this.tasks = tasks;
     this.rebuildSearchIndex();
+  }
+
+  selectTask(taskId: string): void {
+    this.selectedTaskId = taskId;
+    this.cdr.markForCheck();
+  }
+
+  isTaskSelected(taskId: string): boolean {
+    return this.selectedTaskId === taskId;
+  }
+
+  getSelectedTask(): Task | null {
+    if (!this.selectedTaskId) {
+      return null;
+    }
+
+    return this.tasks.find((task) => task.id === this.selectedTaskId) || null;
+  }
+
+  clearSelectedTask(): void {
+    this.selectedTaskId = null;
+    this.cdr.markForCheck();
   }
 
   private rebuildSearchIndex(): void {
@@ -204,33 +235,45 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tasks', task.id, 'edit']);
   }
 
-  confirmDelete(event: Event, taskId: string): void {
+  confirmDelete(event: Event, task: Task): void {
     event.stopPropagation();
-    this.deleteConfirmId = taskId;
+    this.deleteConfirmId = task.id;
+    this.deleteConfirmTaskTitle = task.title;
     this.cdr.markForCheck();
   }
 
   cancelDelete(event: Event): void {
     event.stopPropagation();
     this.deleteConfirmId = null;
+    this.deleteConfirmTaskTitle = '';
+    this.deleteLoading = false;
     this.cdr.markForCheck();
   }
 
   deleteTask(event: Event): void {
     event.stopPropagation();
-    if (!this.deleteConfirmId) return;
+    if (!this.deleteConfirmId || this.deleteLoading) return;
+
+    this.deleteLoading = true;
 
     this.taskService.deleteTask(this.deleteConfirmId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+          if (this.selectedTaskId === this.deleteConfirmId) {
+            this.selectedTaskId = null;
+          }
           this.deleteConfirmId = null;
+          this.deleteConfirmTaskTitle = '';
+          this.deleteLoading = false;
           this.loadTasks(); // Reload to ensure UI is in sync
           this.cdr.markForCheck();
         },
         error: (error) => {
           this.error = error.message || 'Failed to delete task';
           this.deleteConfirmId = null;
+          this.deleteConfirmTaskTitle = '';
+          this.deleteLoading = false;
           this.cdr.markForCheck();
         }
       });
