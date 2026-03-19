@@ -131,9 +131,8 @@ export class TaskEditComponent implements OnInit, OnDestroy, CanComponentDeactiv
         next: () => {
           this.success = true;
           this.loading = false;
-          setTimeout(() => {
-            this.router.navigate(['/tasks']);
-          }, 1500);
+          this.taskForm.markAsPristine();
+          this.router.navigate(['/tasks']);
         },
         error: (error) => {
           this.error = error.message || 'Failed to update task';

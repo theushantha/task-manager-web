@@ -301,6 +301,7 @@
 .btn-block {
   width: 100%;
   position: relative;
+  transition: none;
   margin-top: 0.2rem;
   border-radius: 999px;
   padding: 0.74rem 1.1rem;
@@ -310,17 +311,18 @@
   font-weight: 600;
   font-size: 0.9rem;
   box-shadow: 0 10px 18px rgba(47, 128, 237, 0.23);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    background: linear-gradient(135deg, #2e88f8, #1c67cc);
+    transform: none;
+    background: linear-gradient(135deg, #3d94ff, #2f80ed);
+    box-shadow: 0 10px 18px rgba(47, 128, 237, 0.23);
   }
 
   .spinner {
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    animation: none;
 
     .spinner-dot {
       display: inline-block;
@@ -328,16 +330,7 @@
       height: 6px;
       border-radius: 50%;
       background-color: currentColor;
-      animation: pulse 1.4s infinite;
-    }
-  }
-
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.3;
+      animation: none;
     }
   }
 }

@@ -14,7 +14,6 @@ export class RegisterComponent implements OnInit {
   loading = false;
   submitted = false;
   error: string | null = null;
-  success: string | null = null;
   showPassword = false;
   showConfirmPassword = false;
   passwordStrength = 0;
@@ -125,7 +124,6 @@ export class RegisterComponent implements OnInit {
   onSubmit(): void {
     this.submitted = true;
     this.error = null;
-    this.success = null;
 
     // Stop if form is invalid
     if (this.registerForm.invalid) {
@@ -146,11 +144,7 @@ export class RegisterComponent implements OnInit {
       next: (response) => {
         console.log('Signup successful:', response);
         this.loading = false;
-        this.enableForm();
-        this.success = 'Account created successfully! Redirecting to login...';
-        setTimeout(() => {
-          this.router.navigate(['/auth/login']);
-        }, 1500);
+        this.router.navigate(['/auth/login']);
       },
       error: (error) => {
         console.error('Signup failed:', error);

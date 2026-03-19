@@ -6,14 +6,6 @@
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-      <!-- Success Message -->
-      @if (success) {
-        <div class="alert alert-success">
-          <span class="alert-icon">✓</span>
-          <span>{{ success }}</span>
-        </div>
-      }
-
       <!-- Error Message -->
       @if (error) {
         <div class="alert alert-error">

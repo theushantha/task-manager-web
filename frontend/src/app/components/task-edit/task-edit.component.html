@@ -14,14 +14,6 @@
   }
 
   @if (!initialLoading) {
-    <!-- Success Message -->
-    @if (success) {
-      <div class="alert alert-success">
-        <span class="alert-icon">✓</span>
-        <span>Task updated successfully! Redirecting...</span>
-      </div>
-    }
-
     <!-- Error Message -->
     @if (error) {
       <div class="alert alert-error">
